@@ -44,6 +44,16 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/homeInstructors", async (req, res) => {
+      let sortOptions = { enrolled: -1 };
+      const result = await instructorsCollection
+        .find()
+        .limit(6)
+        .sort(sortOptions)
+        .toArray();
+      res.send(result);
+    });
+
     app.get("/classes", async (req, res) => {
       const result = await classesCollection.find().toArray();
       res.send(result);
