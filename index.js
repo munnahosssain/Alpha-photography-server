@@ -59,6 +59,16 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/popularClasses", async (req, res) => {
+      const sortOptions = { students: -1 };
+      const result = await classesCollection
+        .find()
+        .limit(6)
+        .sort(sortOptions)
+        .toArray();
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
