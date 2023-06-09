@@ -27,11 +27,25 @@ async function run() {
   try {
     client.connect();
     const usersCollection = client.db("alphaDB").collection("users");
+    const instructorsCollection = client
+      .db("alphaDB")
+      .collection("instructors");
+    const classesCollection = client.db("alphaDB").collection("classes");
 
     app.post("/users", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await usersCollection.insertOne(query);
+      res.send(result);
+    });
+
+    app.get("/instructors", async (req, res) => {
+      const result = await instructorsCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.get("/classes", async (req, res) => {
+      const result = await classesCollection.find().toArray();
       res.send(result);
     });
 
