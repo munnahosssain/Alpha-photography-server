@@ -13,6 +13,25 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
+const verifyJWT = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res
+      .status(401)
+      .send({ error: true, message: "unauthorized assess" });
+  }
+  const token = authorization.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decode) => {
+    if (err) {
+      return res
+        .status(401)
+        .send({ error: true, message: "unauthorize access" });
+    }
+    req.decoded = decode;
+    next();
+  });
+};
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.tgbgt3c.mongodb.net/?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, {
@@ -31,6 +50,15 @@ async function run() {
       .db("alphaDB")
       .collection("instructors");
     const classesCollection = client.db("alphaDB").collection("classes");
+    const myClassesCollection = client.db("alphaDB").collection("myClasses");
+
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send({ token });
+    });
 
     app.post("/users", async (req, res) => {
       const id = req.params.id;
@@ -66,6 +94,28 @@ async function run() {
         .limit(6)
         .sort(sortOptions)
         .toArray();
+      res.send(result);
+    });
+
+    app.get("/myClasses", async (req, res) => {
+      const email = req.query.email;
+      if (!email) {
+        res.send([]);
+      }
+      // const decodedEmail = req.decoded.email;
+      // if (email !== decodedEmail) {
+      //   return res
+      //     .status(403)
+      //     .send({ error: true, message: "forbidden access" });
+      // }
+      const query = { email: email };
+      const result = await myClassesCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.post("/myClasses", async (req, res) => {
+      const course = req.body;
+      const result = await myClassesCollection.insertOne(course);
       res.send(result);
     });
 
