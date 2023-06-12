@@ -66,9 +66,9 @@ async function run() {
 
     app.get("/student", async (req, res) => {
       const email = req.query.email;
-      // if (!email) {
-      //   res.send([]);
-      // }
+      if (!email) {
+        res.send([]);
+      }
       const query = { email: email };
       console.log(query);
       const result = await classesCollection.find(query).toArray();
@@ -101,6 +101,17 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/student", async (req, res) => {
+      const email = req.query.email;
+      if (!email) {
+        res.send([]);
+      }
+      const query = { email: email };
+      console.log(query);
+      const result = await classesCollection.find(query).toArray();
+      res.send(result);
+    });
+
     app.get("/classes", async (req, res) => {
       const result = await classesCollection.find().toArray();
       res.send(result);
@@ -108,7 +119,32 @@ async function run() {
 
     app.post("/classes", async (req, res) => {
       const query = req.body;
+
       const result = await classesCollection.insertOne(query);
+      res.send(result);
+    });
+
+    app.get("/classes/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await classesCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.patch("/classes/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const updatedClasses = req.body;
+      const updateClass = {
+        $set: {
+          status: updatedClasses.status,
+        },
+      };
+      const result = await bookingCollection.updateOne(
+        query,
+        filter,
+        updateClass
+      );
       res.send(result);
     });
 
