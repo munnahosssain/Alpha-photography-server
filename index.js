@@ -46,9 +46,8 @@ async function run() {
   try {
     client.connect();
     const usersCollection = client.db("alphaDB").collection("users");
-    const instructorsCollection = client
-      .db("alphaDB")
-      .collection("instructors");
+    const studentCollection = client.db("alphaDB").collection("students");
+    const instructorCollection = client.db("alphaDB").collection("instructors");
     const classesCollection = client.db("alphaDB").collection("classes");
     const myClassesCollection = client.db("alphaDB").collection("myClasses");
 
@@ -60,21 +59,41 @@ async function run() {
       res.send({ token });
     });
 
-    app.post("/users", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await usersCollection.insertOne(query);
+    app.get("/students", async (req, res) => {
+      const result = await studentCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.get("/student", async (req, res) => {
+      const email = req.query.email;
+      // if (!email) {
+      //   res.send([]);
+      // }
+      const query = { email: email };
+      console.log(query);
+      const result = await classesCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.post("/students", async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email };
+      const exitingUser = await studentCollection.findOne(query);
+      if (exitingUser) {
+        return res.send({ message: "User Already Exist" });
+      }
+      const result = await studentCollection.insertOne(user);
       res.send(result);
     });
 
     app.get("/instructors", async (req, res) => {
-      const result = await instructorsCollection.find().toArray();
+      const result = await instructorCollection.find().toArray();
       res.send(result);
     });
 
     app.get("/homeInstructors", async (req, res) => {
       let sortOptions = { enrolled: -1 };
-      const result = await instructorsCollection
+      const result = await instructorCollection
         .find()
         .limit(6)
         .sort(sortOptions)
@@ -84,6 +103,22 @@ async function run() {
 
     app.get("/classes", async (req, res) => {
       const result = await classesCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post("/classes", async (req, res) => {
+      const query = req.body;
+      const result = await classesCollection.insertOne(query);
+      res.send(result);
+    });
+
+    app.get("/myClass", async (req, res) => {
+      const email = req.query.email;
+      if (!email) {
+        res.send([]);
+      }
+      const query = { email: email };
+      const result = await classesCollection.find(query).toArray();
       res.send(result);
     });
 
