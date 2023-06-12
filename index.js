@@ -74,7 +74,7 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/students", async (req, res) => {
+    app.post("/student", async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
       const exitingUser = await studentCollection.findOne(query);
@@ -84,6 +84,42 @@ async function run() {
       const result = await studentCollection.insertOne(user);
       res.send(result);
     });
+
+    app.get("/student/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      // if (req.decoded.email !== email) {
+      //   res.send({ admin: false });
+      // }
+      const query = { email: email };
+      const user = await studentCollection.findOne(query);
+      const result = { admin: user?.role === "admin" };
+      res.send(result);
+    });
+
+    app.patch("/student/admin/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          role: "admin",
+        },
+      };
+      const result = await studentCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+    app.patch("/student/admin/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          role: "admin",
+        },
+      };
+      const result = await studentCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
 
     app.get("/instructors", async (req, res) => {
       const result = await instructorCollection.find().toArray();
@@ -111,6 +147,22 @@ async function run() {
     });
 
     app.get("/classes", async (req, res) => {
+      const approvedClasses = req.query?.approve;
+      const limit = req.query?.limit;
+      const filter = { status: "approve" };
+      if (approvedClasses) {
+        const result = await classesCollection.find(filter).toArray();
+        res.send(result);
+        return;
+      }
+      if (limit) {
+        const result = await classesCollection
+          .find(filter)
+          .limit(parseInt(limit))
+          .toArray();
+        res.send(result);
+        return;
+      }
       const result = await classesCollection.find().toArray();
       res.send(result);
     });
@@ -138,7 +190,9 @@ async function run() {
           ...updatedClasses,
         },
       };
-      const result = await classesCollection.updateOne(query, updateClass,{upsert:true});
+      const result = await classesCollection.updateOne(query, updateClass, {
+        upsert: true,
+      });
       res.send(result);
     });
 
@@ -182,6 +236,69 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await myClassesCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // AdminRole
+
+    // app.get("/class", async (req, res) => {
+    //   const approvedClasses = req.query?.approve;
+    //   const limit = req.query?.limit;
+    //   const filter = { status: "approve" };
+    //   if (approvedClasses) {
+    //     const result = await classesCollection.find(filter).toArray();
+    //     res.send(result);
+    //     return;
+    //   }
+    //   if (limit) {
+    //     const result = await classesCollection
+    //       .find(filter)
+    //       .limit(parseInt(limit))
+    //       .toArray();
+    //     res.send(result);
+    //     return;
+    //   }
+    //   const result = await classesCollection.find().toArray();
+    //   res.send(result);
+    // });
+
+    
+
+    app.patch("/class/:id", async (req, res) => {
+      const id = req.params.id;
+      const status = req.query?.status;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: status,
+        },
+      };
+      const result = await classesCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+    app.get("/feedback/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await classesCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.put("/feedback/:id", async (req, res) => {
+      const id = req.params.id;
+      const { feedback } = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          feedback,
+        },
+      };
+      const result = await classesCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
       res.send(result);
     });
 
