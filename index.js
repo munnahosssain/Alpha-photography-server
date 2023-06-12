@@ -70,7 +70,6 @@ async function run() {
         res.send([]);
       }
       const query = { email: email };
-      console.log(query);
       const result = await classesCollection.find(query).toArray();
       res.send(result);
     });
@@ -107,7 +106,6 @@ async function run() {
         res.send([]);
       }
       const query = { email: email };
-      console.log(query);
       const result = await classesCollection.find(query).toArray();
       res.send(result);
     });
@@ -137,14 +135,10 @@ async function run() {
       const updatedClasses = req.body;
       const updateClass = {
         $set: {
-          status: updatedClasses.status,
+          ...updatedClasses,
         },
       };
-      const result = await bookingCollection.updateOne(
-        query,
-        filter,
-        updateClass
-      );
+      const result = await classesCollection.updateOne(query, updateClass,{upsert:true});
       res.send(result);
     });
 
